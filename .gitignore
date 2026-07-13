@@ -1,0 +1,33 @@
+# .NET / C#
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.log
+*.dll
+*.exe
+publish/
+
+# IDE / Editor
+codeanalysis.ruleset
+.editorconfig.bak
+.vs/
+.vscode/settings.json
+*.swp
+*~
+
+# Secrets & env (never commit credentials)
+.env
+*.env
+*.key
+*.p12
+*.pfx
+cert/
+config/local.json
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
