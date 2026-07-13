@@ -31,3 +31,7 @@ config/local.json
 Thumbs.db
 *.tmp
 *.temp
+
+# Raw credential files (do NOT commit)
+~/.git-credentials
+
