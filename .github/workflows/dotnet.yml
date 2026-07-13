@@ -1,0 +1,43 @@
+name: .NET 9 Build & Test
+
+on:
+  push:
+    branches: [ main, development ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test (placeholder — add unit tests later)
+        run: dotnet test --no-build
+
+      - name: Publish Windows executable
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          dotnet publish -c Release -r win-x64 --self-contained true -o ./publish
+        id: publish
+
+      - name: Upload build artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDFProofer-win-x64
+          path: ./publish/
+          retention-days: 14
