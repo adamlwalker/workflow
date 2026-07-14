@@ -7,4 +7,6 @@ public class HotFolderSettings
     public string ProofsSharePath { get; set; } = "./ProofsShare";
     public string ErrorPath { get; set; } = "./ErrorDir";
     public int JobProcessorIntervalSeconds { get; set; } = 5;
+    // When true, the JobProcessor will attempt to use Ghostscript for PDF optimization
+    public bool UseGhostscript { get; set; } = false;
 }

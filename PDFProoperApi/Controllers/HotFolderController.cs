@@ -16,9 +16,10 @@ public class HotFolderController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<HotFolderSettings> Get()
+    public ActionResult Get()
     {
-        return Ok(_settings);
+        var detected = PDFProofer.Core.Services.GhostscriptHelper.IsAvailable();
+        return Ok(new { Settings = _settings, GhostscriptDetected = detected });
     }
 
     [HttpPost]

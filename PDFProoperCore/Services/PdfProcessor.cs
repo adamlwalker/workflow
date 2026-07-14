@@ -142,8 +142,16 @@ public class PdfProcessor
     /// <summary>
     /// Optimize PDF for printing (FR-PP-007) — stub, copies input.
     /// </summary>
-    public string OptimizePdf(string inputPath, string outputPath)
+    public string OptimizePdf(string inputPath, string outputPath, bool useGhostscript = false)
     {
+        if (useGhostscript && GhostscriptHelper.IsAvailable())
+        {
+            var ok = GhostscriptHelper.OptimizePdfWithGhostscript(inputPath, outputPath);
+            if (ok) return outputPath;
+            // fall back if ghostscript failed
+        }
+
+        // Default: copy file
         File.Copy(inputPath, outputPath, true);
         return outputPath;
     }

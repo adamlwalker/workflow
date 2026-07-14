@@ -54,17 +54,22 @@ public class JobProcessor : BackgroundService
                         var proofPath = Path.Combine(_settings.ProofsSharePath, proofName);
                         _pdfProcessor.GenerateProofPdf(inputPath, proofPath);
 
+                        // Optimize proof (prefer Ghostscript when enabled)
+                        var optimizedProofName = job.JobNumber + "-proof-optimized.pdf";
+                        var optimizedProofPath = Path.Combine(_settings.ProofsSharePath, optimizedProofName);
+                        _pdfProcessor.OptimizePdf(proofPath, optimizedProofPath, _settings.UseGhostscript);
+
                         var thumbName = job.JobNumber + "-thumb.png";
                         var thumbPath = Path.Combine(_settings.ProofsSharePath, thumbName);
-                        _pdfProcessor.GenerateThumbnail(inputPath, thumbPath);
+                        _pdfProcessor.GenerateThumbnail(optimizedProofPath, thumbPath);
 
                         // mark job finished and record proof path
                         job.State = JobState.Finished;
-                        job.SentFilePath = proofPath;
+                        job.SentFilePath = optimizedProofPath;
                         db.Update(job);
                         await db.SaveChangesAsync(stoppingToken);
 
-                        _logger.LogInformation("Job {job} processed, proof at {proof}", job.JobNumber, proofPath);
+                        _logger.LogInformation("Job {job} processed, proof at {proof}", job.JobNumber, optimizedProofPath);
                     }
                     catch (Exception ex)
                     {
