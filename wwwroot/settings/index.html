@@ -40,6 +40,20 @@
   <button id="uploadBtn">Upload to HotFolder</button>
   <div id="uploadResult" class="status"></div>
 
+  <h2>Jobs</h2>
+  <div style="display:flex; gap:1rem;">
+    <div style="flex:1">
+      <h3>Active / Queued</h3>
+      <div id="activeJobs"></div>
+    </div>
+    <div style="flex:1">
+      <h3>Finished</h3>
+      <div id="finishedJobs"></div>
+      <h3>Error / Sent</h3>
+      <div id="otherJobs"></div>
+    </div>
+  </div>
+
 <script>
   async function load() {
     const res = await fetch('/api/hotfolder');
@@ -52,6 +66,61 @@
     document.getElementById('useGs').checked = s.UseGhostscript || s.UseGhostscript === true;
     const detected = json.ghostscriptdetected || json.GhostscriptDetected || false;
     document.getElementById('detected').textContent = detected ? 'Ghostscript detected on this host.' : 'Ghostscript not detected on this host.';
+
+    // load jobs and destinations
+    await loadJobs();
+    await loadDestinations();
+  }
+
+  async function loadJobs() {
+    const res = await fetch('/api/jobs');
+    const jobs = await res.json();
+    const active = jobs.filter(j => j.state === 'Active');
+    const finished = jobs.filter(j => j.state === 'Finished');
+    const other = jobs.filter(j => j.state !== 'Active' && j.state !== 'Finished');
+
+    document.getElementById('activeJobs').innerHTML = renderJobs(active, true);
+    document.getElementById('finishedJobs').innerHTML = renderJobs(finished, false);
+    document.getElementById('otherJobs').innerHTML = renderJobs(other, false);
+  }
+
+  let destinations = [];
+  async function loadDestinations() {
+    const res = await fetch('/api/destinations');
+    destinations = await res.json();
+  }
+
+  function renderJobs(jobs, showActions) {
+    if (!jobs || jobs.length === 0) return '<div class="status">No jobs</div>';
+    let html = '<table style="width:100%; border-collapse:collapse">';
+    html += '<tr><th>Id</th><th>JobNumber</th><th>State</th><th>Arrival</th><th>Actions</th></tr>';
+    for (const j of jobs) {
+      html += `<tr style="border-bottom:1px solid #eee"><td>${j.id}</td><td>${j.jobNumber}</td><td>${j.state}</td><td>${new Date(j.arrivalTimestamp).toLocaleString()}</td><td>`;
+      if (showActions) {
+        html += `<button onclick="reprocess(${j.id})">Reprocess</button> `;
+        html += `<select id="dest_${j.id}">`;
+        html += '<option value="">Send to... </option>';
+        for (const d of destinations) html += `<option value="${d.id}">${d.displayName}</option>`;
+        html += `</select> <button onclick="sendTo(${j.id})">Send</button>`;
+      }
+      html += `</td></tr>`;
+    }
+    html += '</table>';
+    return html;
+  }
+
+  async function reprocess(id) {
+    const res = await fetch(`/api/jobs/${id}/reprocess`, { method: 'POST' });
+    if (res.ok) { await loadJobs(); alert('Job requeued'); } else alert('Failed to reprocess');
+  }
+
+  async function sendTo(id) {
+    const sel = document.getElementById('dest_' + id);
+    if (!sel) return alert('No destination selected');
+    const destId = sel.value;
+    if (!destId) return alert('Pick a destination');
+    const res = await fetch(`/api/jobs/${id}/send/${destId}`, { method: 'POST' });
+    if (res.ok) { await loadJobs(); alert('Sent'); } else { const txt = await res.text(); alert('Send failed: '+txt); }
   }
 
   document.getElementById('saveBtn').addEventListener('click', async () => {
