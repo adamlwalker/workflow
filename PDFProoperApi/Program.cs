@@ -35,6 +35,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+// Ensure SQLite native provider initialized for runtime
+try
+{
+    SQLitePCL.Batteries_V2.Init();
+}
+catch { /* best-effort init */ }
+
 // Apply database migrations at startup (CON-O-004)
 using (var scope = app.Services.CreateScope())
 {
