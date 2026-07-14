@@ -34,7 +34,8 @@ public class PdfProcessor
 
             // Prepare large, semi-transparent font
             var fontSize = Math.Min(newPage.Width.Point, newPage.Height.Point) / 4;
-            var font = new XFont("Arial", fontSize, XFontStyle.Bold);
+            // Use regular style; PDFsharp 6 exposes different style constants than older versions
+            var font = new XFont("Arial", fontSize, XFontStyle.Regular);
             var color = XColor.FromArgb(60, XColors.Red);
             var brush = new XSolidBrush(color);
 
