@@ -18,7 +18,8 @@ public class PdfProcessor
     public string GenerateProofPdf(string inputPath, string outputPath)
     {
         var pdfBytes = File.ReadAllBytes(inputPath);
-        new PdfDocumentRenderer(true); // MigraDoc 6.0 render pipeline placeholder
+        // PdfDocumentRenderer placeholder - real rendering implemented later
+        var _ = new PdfDocumentRenderer();
         File.WriteAllBytes(outputPath, pdfBytes);
         return outputPath;
     }
