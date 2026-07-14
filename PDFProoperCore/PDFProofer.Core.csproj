@@ -11,8 +11,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.*" />
     <PackageReference Include="PDFsharp-MigraDoc" Version="6.0.0" />
     <PackageReference Include="SkiaSharp" Version="2.88.6" />
-    <PackageReference Include="PdfiumViewer" Version="2.13.0" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    <!-- Pdfium removed: rely on Ghostscript for rasterization. -->
+    <!-- System.Drawing.Common removed: use SkiaSharp for image work. -->
   </ItemGroup>
 
 </Project>

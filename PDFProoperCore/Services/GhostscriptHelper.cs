@@ -58,4 +58,37 @@ public static class GhostscriptHelper
             return false;
         }
     }
+
+    /// <summary>
+    /// Render a single PDF page to a PNG using Ghostscript if available.
+    /// </summary>
+    public static bool RenderPdfPageToPng(string inputPath, int pageIndex, int dpi, string outputPath)
+    {
+        try
+        {
+            // Ghostscript pages are 1-based
+            var page = pageIndex + 1;
+            var args = $"-q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -r{dpi} -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dFirstPage={page} -dLastPage={page} -sOutputFile=\"{outputPath}\" \"{inputPath}\"";
+            var psi = new ProcessStartInfo
+            {
+                FileName = "gs",
+                Arguments = args,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var p = Process.Start(psi);
+            if (p == null) return false;
+            var stderr = p.StandardError.ReadToEnd();
+            var stdout = p.StandardOutput.ReadToEnd();
+            p.WaitForExit(30000);
+            return p.ExitCode == 0 && File.Exists(outputPath);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
