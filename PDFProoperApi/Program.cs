@@ -43,18 +43,23 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Ensure SQLite native provider initialized for runtime
-try
-{
-    SQLitePCL.Batteries_V2.Init();
-}
-catch { /* best-effort init */ }
-
-// Apply database migrations at startup (CON-O-004)
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
+
+    if (builder.Environment.IsDevelopment())
+    {
+        // In-memory provider: ensure database created
+        dbContext.Database.EnsureCreated();
+    }
+    else
+    {
+        // Ensure SQLite native provider initialized for runtime
+        try { SQLitePCL.Batteries_V2.Init(); } catch { /* best-effort */ }
+
+        // Apply migrations for relational providers
+        try { dbContext.Database.Migrate(); } catch (Exception ex) { var logger = scope.ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger("Startup"); logger?.LogWarning(ex, "Database migration failed"); }
+    }
 }
 
 app.UseAuthorization();
