@@ -40,6 +40,24 @@
   <button id="uploadBtn">Upload to HotFolder</button>
   <div id="uploadResult" class="status"></div>
 
+  <h2>Files</h2>
+  <div style="display:flex; gap:1rem;">
+    <div style="flex:1">
+      <h3>Hot Folder</h3>
+      <div id="hotFiles"></div>
+    </div>
+    <div style="flex:1">
+      <h3>Active Share</h3>
+      <div id="activeFiles"></div>
+      <h3>Proofs</h3>
+      <div id="proofFiles"></div>
+    </div>
+    <div style="flex:1">
+      <h3>Error</h3>
+      <div id="errorFiles"></div>
+    </div>
+  </div>
+
   <h2>Jobs</h2>
   <div style="display:flex; gap:1rem;">
     <div style="flex:1">
@@ -67,9 +85,10 @@
     const detected = json.ghostscriptdetected || json.GhostscriptDetected || false;
     document.getElementById('detected').textContent = detected ? 'Ghostscript detected on this host.' : 'Ghostscript not detected on this host.';
 
-    // load jobs and destinations
+    // load jobs, destinations and files
     await loadJobs();
     await loadDestinations();
+    await loadFiles();
   }
 
   async function loadJobs() {
@@ -88,6 +107,52 @@
   async function loadDestinations() {
     const res = await fetch('/api/destinations');
     destinations = await res.json();
+  }
+
+  async function loadFiles() {
+    const res = await fetch('/api/files');
+    const json = await res.json();
+    renderFileList('hotFiles', json.hotFolder || [] , document.getElementById('hotPath').value);
+    renderFileList('activeFiles', json.activeShare || [] , document.getElementById('activePath').value);
+    renderFileList('proofFiles', json.proofsShare || [] , document.getElementById('proofsPath').value);
+    renderFileList('errorFiles', json.errorPath || [] , document.getElementById('errorPath').value);
+  }
+
+  function renderFileList(containerId, files, folder) {
+    const el = document.getElementById(containerId);
+    if (!files || files.length === 0) { el.innerHTML = '<div class="status">No files</div>'; return; }
+    let html = '<table style="width:100%; border-collapse:collapse">';
+    html += '<tr><th>Name</th><th>Size</th><th>Modified</th><th>Actions</th></tr>';
+    for (const f of files) {
+      html += `<tr style="border-bottom:1px solid #eee"><td>${f.name}</td><td>${(f.length/1024).toFixed(1)} KB</td><td>${new Date(f.modified).toLocaleString()}</td><td>`;
+      html += `<button onclick="createJob('${folder.replace(/\\/g,'\\\\')}','${f.name.replace(/'/g,"\\'")}")">Create Job</button> `;
+      html += `<button onclick="downloadFile('${folder.replace(/\\/g,'\\\\')}','${f.name.replace(/'/g,"\\'")}")">Download</button> `;
+      html += `<button onclick="deleteFile('${folder.replace(/\\/g,'\\\\')}','${f.name.replace(/'/g,"\\'")}")">Delete</button>`;
+      html += '</td></tr>';
+    }
+    html += '</table>';
+    el.innerHTML = html;
+  }
+
+  async function createJob(folder, filename) {
+    const fd = new FormData();
+    fd.append('folder', folder);
+    fd.append('filename', filename);
+    const res = await fetch('/api/files/createjob', { method: 'POST', body: fd });
+    if (res.ok) { await loadFiles(); await loadJobs(); alert('Job created'); } else { const txt = await res.text(); alert('Create failed: '+txt); }
+  }
+
+  async function deleteFile(folder, filename) {
+    const fd = new FormData();
+    fd.append('folder', folder);
+    fd.append('filename', filename);
+    const res = await fetch('/api/files/delete', { method: 'POST', body: fd });
+    if (res.ok) { await loadFiles(); alert('Deleted'); } else { const txt = await res.text(); alert('Delete failed: '+txt); }
+  }
+
+  function downloadFile(folder, filename) {
+    const url = `/api/files/download?folder=${encodeURIComponent(folder)}&filename=${encodeURIComponent(filename)}`;
+    window.open(url, '_blank');
   }
 
   function renderJobs(jobs, showActions) {
