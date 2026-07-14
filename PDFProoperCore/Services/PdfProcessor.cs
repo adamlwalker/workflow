@@ -33,7 +33,8 @@ public class PdfProcessor
             using var gfx = XGraphics.FromPdfPage(newPage, XGraphicsPdfPageOptions.Prepend);
 
             // Prepare large, semi-transparent font
-            var fontSize = Math.Min(newPage.Width.Point, newPage.Height.Point) / 4;
+            // Scale watermark size by proof DPI so proof output respects intended density
+            var fontSize = Math.Min(newPage.Width.Point, newPage.Height.Point) * (_proofDpi / 72.0) / 4;
             // Use the two-argument constructor to avoid relying on font-style constants that vary across PDFsharp versions
             var font = new XFont("Arial", fontSize);
             var color = XColor.FromArgb(60, XColors.Red);
