@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>PDF Proofer — Settings</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width: 900px; margin: 2rem auto; }
+    label { display:block; margin-top: .5rem; font-weight:600 }
+    input[type=text] { width:100%; padding:.5rem }
+    .row { display:flex; gap:1rem }
+    .col { flex:1 }
+    button { padding:.5rem 1rem; margin-top:1rem }
+    .status { margin-top:.5rem; color: #555 }
+  </style>
+</head>
+<body>
+  <h1>PDF Proofer — Settings</h1>
+  <div id="detected" class="status">Checking Ghostscript...</div>
+
+  <h2>Hot-folder</h2>
+  <label>Hot folder path</label>
+  <input id="hotPath" type="text" />
+
+  <label>ActiveShare path</label>
+  <input id="activePath" type="text" />
+
+  <label>Proofs path</label>
+  <input id="proofsPath" type="text" />
+
+  <label>Error path</label>
+  <input id="errorPath" type="text" />
+
+  <label><input id="useGs" type="checkbox" /> Use Ghostscript for optimization (detected)</label>
+
+  <button id="saveBtn">Save settings</button>
+  <div id="saveResult" class="status"></div>
+
+  <h2>Upload a PDF to hot-folder (create job)</h2>
+  <input id="file" type="file" accept="application/pdf" />
+  <button id="uploadBtn">Upload to HotFolder</button>
+  <div id="uploadResult" class="status"></div>
+
+  <h2>Jobs</h2>
+  <div style="display:flex; gap:1rem;">
+    <div style="flex:1">
+      <h3>Active / Queued</h3>
+      <div id="activeJobs"></div>
+    </div>
+    <div style="flex:1">
+      <h3>Finished</h3>
+      <div id="finishedJobs"></div>
+      <h3>Error / Sent</h3>
+      <div id="otherJobs"></div>
+    </div>
+  </div>
+
+<script>
+  async function load() {
+    const res = await fetch('/api/hotfolder');
+    const json = await res.json();
+    const s = json.settings || json.Settings || {};
+    document.getElementById('hotPath').value = s.HotFolderPath || './HotFolder';
+    document.getElementById('activePath').value = s.ActiveSharePath || './ActiveShare';
+    document.getElementById('proofsPath').value = s.ProofsSharePath || './ProofsShare';
+    document.getElementById('errorPath').value = s.ErrorPath || './ErrorDir';
+    document.getElementById('useGs').checked = s.UseGhostscript || s.UseGhostscript === true;
+    const detected = json.ghostscriptdetected || json.GhostscriptDetected || false;
+    document.getElementById('detected').textContent = detected ? 'Ghostscript detected on this host.' : 'Ghostscript not detected on this host.';
+
+    // load jobs and destinations
+    await loadJobs();
+    await loadDestinations();
+  }
+
+  async function loadJobs() {
+    const res = await fetch('/api/jobs');
+    const jobs = await res.json();
+    const active = jobs.filter(j => j.state === 'Active');
+    const finished = jobs.filter(j => j.state === 'Finished');
+    const other = jobs.filter(j => j.state !== 'Active' && j.state !== 'Finished');
+
+    document.getElementById('activeJobs').innerHTML = renderJobs(active, true);
+    document.getElementById('finishedJobs').innerHTML = renderJobs(finished, false);
+    document.getElementById('otherJobs').innerHTML = renderJobs(other, false);
+  }
+
+  let destinations = [];
+  async function loadDestinations() {
+    const res = await fetch('/api/destinations');
+    destinations = await res.json();
+  }
+
+  function renderJobs(jobs, showActions) {
+    if (!jobs || jobs.length === 0) return '<div class="status">No jobs</div>';
+    let html = '<table style="width:100%; border-collapse:collapse">';
+    html += '<tr><th>Id</th><th>JobNumber</th><th>State</th><th>Arrival</th><th>Actions</th></tr>';
+    for (const j of jobs) {
+      html += `<tr style="border-bottom:1px solid #eee"><td>${j.id}</td><td>${j.jobNumber}</td><td>${j.state}</td><td>${new Date(j.arrivalTimestamp).toLocaleString()}</td><td>`;
+      if (showActions) {
+        html += `<button onclick="reprocess(${j.id})">Reprocess</button> `;
+        html += `<select id="dest_${j.id}">`;
+        html += '<option value="">Send to... </option>';
+        for (const d of destinations) html += `<option value="${d.id}">${d.displayName}</option>`;
+        html += `</select> <button onclick="sendTo(${j.id})">Send</button>`;
+      }
+      html += `</td></tr>`;
+    }
+    html += '</table>';
+    return html;
+  }
+
+  async function reprocess(id) {
+    const res = await fetch(`/api/jobs/${id}/reprocess`, { method: 'POST' });
+    if (res.ok) { await loadJobs(); alert('Job requeued'); } else alert('Failed to reprocess');
+  }
+
+  async function sendTo(id) {
+    const sel = document.getElementById('dest_' + id);
+    if (!sel) return alert('No destination selected');
+    const destId = sel.value;
+    if (!destId) return alert('Pick a destination');
+    const res = await fetch(`/api/jobs/${id}/send/${destId}`, { method: 'POST' });
+    if (res.ok) { await loadJobs(); alert('Sent'); } else { const txt = await res.text(); alert('Send failed: '+txt); }
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const payload = {
+      HotFolderPath: document.getElementById('hotPath').value,
+      ActiveSharePath: document.getElementById('activePath').value,
+      ProofsSharePath: document.getElementById('proofsPath').value,
+      ErrorPath: document.getElementById('errorPath').value,
+      JobProcessorIntervalSeconds: 5,
+      UseGhostscript: document.getElementById('useGs').checked
+    };
+    const res = await fetch('/api/hotfolder', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+    const txt = await res.text();
+    document.getElementById('saveResult').textContent = res.ok ? 'Saved (appsettings.json updated). Restart required for watcher to pick changes.' : ('Error: ' + txt);
+  });
+
+  document.getElementById('uploadBtn').addEventListener('click', async () => {
+    const f = document.getElementById('file').files[0];
+    if (!f) { document.getElementById('uploadResult').textContent = 'Select a file first'; return; }
+    const fd = new FormData(); fd.append('file', f, f.name);
+    const res = await fetch('/api/hotfolder/upload', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (res.ok) document.getElementById('uploadResult').textContent = 'Uploaded: ' + json.saved + '. The watcher will enqueue the job.'; else document.getElementById('uploadResult').textContent = 'Upload failed';
+  });
+
+  load().catch(e => { document.getElementById('detected').textContent = 'Error loading settings'; });
+</script>
+</body>
+</html>
