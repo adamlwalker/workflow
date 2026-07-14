@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PDFProoperApi", "PDFProoperApi", "{8A3F6E2A-AA49-EC86-9143-49963EC47C2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PDFProofer.Api", "PDFProoperApi\PDFProofer.Api.csproj", "{F22434DC-44F7-4031-8965-E8440F3046B3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PDFProoperCore", "PDFProoperCore", "{4F48075E-CA4E-35CB-F6B8-E17BFB06656B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PDFProofer.Core", "PDFProoperCore\PDFProofer.Core.csproj", "{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Debug|x64.Build.0 = Debug|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Debug|x86.Build.0 = Debug|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Release|x64.ActiveCfg = Release|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Release|x64.Build.0 = Release|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Release|x86.ActiveCfg = Release|Any CPU
+		{F22434DC-44F7-4031-8965-E8440F3046B3}.Release|x86.Build.0 = Release|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Debug|x64.Build.0 = Debug|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Debug|x86.Build.0 = Debug|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Release|x64.ActiveCfg = Release|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Release|x64.Build.0 = Release|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Release|x86.ActiveCfg = Release|Any CPU
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F22434DC-44F7-4031-8965-E8440F3046B3} = {8A3F6E2A-AA49-EC86-9143-49963EC47C2C}
+		{0FBEA9D3-7031-46A2-BD18-1B704D3C8C51} = {4F48075E-CA4E-35CB-F6B8-E17BFB06656B}
+	EndGlobalSection
+EndGlobal
