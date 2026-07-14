@@ -3,6 +3,9 @@ using PdfSharp.Pdf.IO;
 using PdfSharp.Drawing;
 using MigraDoc.Rendering;
 using SkiaSharp;
+using PdfiumViewer;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace PDFProofer.Core.Services;
 
@@ -75,6 +78,22 @@ public class PdfProcessor
         var scale = _thumbnailDpi / 72.0; // convert points (72 DPI) to target DPI
         var widthPx = Math.Max(1, (int)Math.Round(widthPts * scale));
         var heightPx = Math.Max(1, (int)Math.Round(heightPts * scale));
+
+        // Try Pdfium (higher fidelity) first; fall back to Skia placeholder
+        try
+        {
+            // PdfiumViewer returns a System.Drawing.Bitmap
+            using (var pdfDoc = PdfiumViewer.PdfDocument.Load(inputPath))
+            {
+                using var bmp = pdfDoc.Render(0, widthPx, heightPx, _thumbnailDpi, _thumbnailDpi, PdfiumViewer.PdfRenderFlags.Annotations);
+                bmp.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+                return outputPath;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log could be added; fall back to lightweight Skia render
+        }
 
         // Create a simple thumbnail with SkiaSharp: white background, filename text, small watermark.
         using var surface = SKSurface.Create(new SKImageInfo(widthPx, heightPx, SKColorType.Rgba8888, SKAlphaType.Premul));
