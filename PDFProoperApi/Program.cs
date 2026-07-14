@@ -14,10 +14,18 @@ builder.Services.AddSingleton<PDFProofer.Core.Services.PdfProcessor>();
 builder.Services.AddHostedService<PDFProofer.Api.Services.HotFolderWatcher>();
 builder.Services.AddHostedService<PDFProofer.Api.Services.JobProcessor>();
 
-// Configure SQLite database (CON-T-001)
+// Configure database
 var connectionString = "Data Source=pdfproofer.db";
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connectionString));
+if (builder.Environment.IsDevelopment())
+{
+    // Use in-memory provider for local dev to avoid native sqlite dependency issues in this environment
+    builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("pdfproofer_dev"));
+}
+else
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
