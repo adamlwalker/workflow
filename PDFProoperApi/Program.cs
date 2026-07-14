@@ -33,6 +33,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 // Apply database migrations at startup (CON-O-004)
 using (var scope = app.Services.CreateScope())
@@ -49,12 +50,14 @@ app.MapControllers();
 // Read hotfolder settings (fallback to defaults if missing)
 var cfg = app.Services.GetRequiredService<IConfiguration>();
 var hot = cfg.GetSection("HotFolderSettings");
-var hotSettings = hot.Exists() ? hot.Get<PDFProofer.Core.Models.HotFolderSettings>() : new PDFProofer.Core.Models.HotFolderSettings();
+var hotSettings = hot.Exists()
+    ? hot.Get<PDFProofer.Core.Models.HotFolderSettings>() ?? new PDFProofer.Core.Models.HotFolderSettings()
+    : new PDFProofer.Core.Models.HotFolderSettings();
 
-// Ensure directories exist
-Directory.CreateDirectory(hotSettings.HotFolderPath);
-Directory.CreateDirectory(hotSettings.ActiveSharePath);
-Directory.CreateDirectory(hotSettings.ProofsSharePath);
-Directory.CreateDirectory(hotSettings.ErrorPath);
+// Ensure directories exist (use safe defaults if any path is null)
+Directory.CreateDirectory(hotSettings.HotFolderPath ?? Path.Combine(AppContext.BaseDirectory, "HotFolder"));
+Directory.CreateDirectory(hotSettings.ActiveSharePath ?? Path.Combine(AppContext.BaseDirectory, "ActiveShare"));
+Directory.CreateDirectory(hotSettings.ProofsSharePath ?? Path.Combine(AppContext.BaseDirectory, "ProofsShare"));
+Directory.CreateDirectory(hotSettings.ErrorPath ?? Path.Combine(AppContext.BaseDirectory, "ErrorDir"));
 
 app.Run();

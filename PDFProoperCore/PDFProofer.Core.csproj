@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.9" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.*" />
     <PackageReference Include="PDFsharp-MigraDoc" Version="6.0.0" />
     <PackageReference Include="SkiaSharp" Version="2.88.6" />
-    <PackageReference Include="PdfiumViewer" Version="2.19.0" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    <!-- Pdfium removed: rely on Ghostscript for rasterization. -->
+    <!-- System.Drawing.Common removed: use SkiaSharp for image work. -->
   </ItemGroup>
 
 </Project>

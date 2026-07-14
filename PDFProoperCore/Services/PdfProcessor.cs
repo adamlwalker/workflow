@@ -3,9 +3,6 @@ using PdfSharp.Pdf.IO;
 using PdfSharp.Drawing;
 using MigraDoc.Rendering;
 using SkiaSharp;
-using PdfiumViewer;
-using System.Drawing;
-using System.Drawing.Imaging;
 
 namespace PDFProofer.Core.Services;
 
@@ -36,8 +33,10 @@ public class PdfProcessor
             using var gfx = XGraphics.FromPdfPage(newPage, XGraphicsPdfPageOptions.Prepend);
 
             // Prepare large, semi-transparent font
-            var fontSize = Math.Min(newPage.Width.Point, newPage.Height.Point) / 4;
-            var font = new XFont("Arial", fontSize, XFontStyle.Bold);
+            // Scale watermark size by proof DPI so proof output respects intended density
+            var fontSize = Math.Min(newPage.Width.Point, newPage.Height.Point) * (_proofDpi / 72.0) / 4;
+            // Use the two-argument constructor to avoid relying on font-style constants that vary across PDFsharp versions
+            var font = new XFont("Arial", fontSize);
             var color = XColor.FromArgb(60, XColors.Red);
             var brush = new XSolidBrush(color);
 
@@ -79,20 +78,18 @@ public class PdfProcessor
         var widthPx = Math.Max(1, (int)Math.Round(widthPts * scale));
         var heightPx = Math.Max(1, (int)Math.Round(heightPts * scale));
 
-        // Try Pdfium (higher fidelity) first; fall back to Skia placeholder
-        try
+        // Try Ghostscript (preferred) to render the first page to PNG, fall back to Skia placeholder
+        if (GhostscriptHelper.IsAvailable())
         {
-            // PdfiumViewer returns a System.Drawing.Bitmap
-            using (var pdfDoc = PdfiumViewer.PdfDocument.Load(inputPath))
+            try
             {
-                using var bmp = pdfDoc.Render(0, widthPx, heightPx, _thumbnailDpi, _thumbnailDpi, PdfiumViewer.PdfRenderFlags.Annotations);
-                bmp.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
-                return outputPath;
+                var ok = GhostscriptHelper.RenderPdfPageToPng(inputPath, 0, _thumbnailDpi, outputPath);
+                if (ok) return outputPath;
             }
-        }
-        catch (Exception ex)
-        {
-            // Log could be added; fall back to lightweight Skia render
+            catch
+            {
+                // ignore and fall back
+            }
         }
 
         // Create a simple thumbnail with SkiaSharp: white background, filename text, small watermark.
