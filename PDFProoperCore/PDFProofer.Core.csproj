@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.9" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.*" />
     <PackageReference Include="PDFsharp-MigraDoc" Version="6.0.0" />
     <PackageReference Include="SkiaSharp" Version="2.88.6" />
     <!-- Pdfium removed: rely on Ghostscript for rasterization. -->
